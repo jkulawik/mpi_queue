@@ -3,8 +3,8 @@ from misc import exp
 
 
 class EventType(enum.Enum):
-    PACKET_ARRIVAL = 0
-    PACKET_SERVICED = 1  # TODO jakoś tak wyszło że to jest na razie niewykorzystane, może będzie dla pakietów na wyjściu sieci?
+    PACKET_ARRIVAL = 0  # Oznacza przyjście pakietu do bufora jakiejś kolejki
+    PACKET_SERVICED = 1  # Oznacza zakończenie przetwarzania pakietu i przesłanie go dalej
 
 
 class Packet:

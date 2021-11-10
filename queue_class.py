@@ -15,7 +15,7 @@ class PacketQueue:
     def buffer_packet(self, packet: Packet):
         self.queue.append(packet)
 
-
+        # TODO ustawić czas zdarzenia na czas zakończenia obsługi pakietu
         event = Event(EventType.PACKET_SERVICED, packet)
         self.event_list_ref.append(event)
 
