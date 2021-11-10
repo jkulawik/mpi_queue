@@ -1,7 +1,17 @@
+
 class PacketQueue:
-    def __init__(self, id_string: str, next_q_id: str, keep_packet_len: bool):
-        # Variables used for routing
-        self.id_string = id_string
-        self.next_q_id = next_q_id
-        # Other vars
+
+    queue = []
+
+    def __init__(self, address: str, keep_packet_len: bool):
+        self.address = address
         self.keep_packet_len = keep_packet_len
+
+    def service_next_packet(self):
+        if len(self.queue) == 0:
+            return
+        packet = self.queue[0]
+
+        if not self.keep_packet_len:
+            packet.randomize_service_time()
+        # TODO wygenerować event i dodać go do kolejki
