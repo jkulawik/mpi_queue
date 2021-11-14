@@ -10,7 +10,7 @@ class EventType(enum.Enum):
 class Packet:
     service_time = None  # Możemy uznać że długość obsługi oznacza wielkość pakietu
     service_end_time = None
-    next_hop_address = 1  # dla ułatwienia od razu przypiszmy ruter brzegowy
+    next_hop_address = 2  # dla ułatwienia od razu przypiszmy ruter brzegowy
     avg_service_time = 0.125  # to można przechować gdziekolwiek ale tu jest wygodnie
 
     def __init__(self, arrival_time: float, destination_address: str):
@@ -33,10 +33,10 @@ class Event:
 
     def __str__(self):
         ret = f"Event:\n"
+        ret += f"\tTime: {self.time}\n"
         if self.event_type == EventType.PACKET_ARRIVAL:
-            ret += f"\tPacket arrived in router {self.event_address}\n"
+            ret += f"\tPacket arrived in router {self.event_address}"
         elif self.event_type == EventType.PACKET_SERVICED:
             ret += f"\tPacket serviced in router {self.event_address}\n"
-        ret += f"\tTime: {self.time}\n"
-        ret += f"\tPacket's next hop: {self.packet.next_hop_address}"
+            ret += f"\tPacket's next hop: {self.packet.next_hop_address}"
         return ret

@@ -6,6 +6,9 @@ from small_classes import Packet
 class PacketQueue:
     queue = []
 
+    def __str__(self):
+        return f"Queue with address {self.address}"
+
     def __init__(self, address, keep_packet_len: bool, event_list_ref):
         self.address = address
         self.keep_packet_len = keep_packet_len
