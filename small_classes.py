@@ -15,8 +15,8 @@ class Packet:
         self.service_end_time = None
         self.arrival_time = arrival_time
         self.randomize_service_time()
-        self.destination_address = destination_address
-        self.next_hop_address = 1  # dla ułatwienia od razu przypiszmy poprawny dla nowych pakietów
+        self.destination_address = destination_address  # TODO w obecnym modelu routingu ten parametr nie jest używany, do wywalenia
+        self.next_hop_address = 0  # dla ułatwienia od razu przypiszmy poprawny dla nowych pakietów
 
     # Oddzielone jako funkcja żeby wykorzystać w ruterach
     def randomize_service_time(self):
@@ -35,6 +35,7 @@ class Event:
         ret = f"Event:\n"
         ret += f"\tTime: {self.time}\n"
         if self.event_type == EventType.PACKET_ARRIVAL:
+            # TODO dodać liczbę kolejek, żeby tu wiedzieć czy pakiet wyszedł z sieci
             ret += f"\tPacket arrived in router {self.event_address}"
         elif self.event_type == EventType.PACKET_SERVICE:
             ret += f"\tPacket service in router {self.event_address}"

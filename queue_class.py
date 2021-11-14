@@ -1,6 +1,4 @@
-from small_classes import Event
-from small_classes import EventType
-from small_classes import Packet
+from small_classes import Event, EventType, Packet
 
 
 class PacketQueue:
@@ -33,12 +31,7 @@ class PacketQueue:
         packet: Packet = self.queue[0]
 
         # "Routing"
-        # Można się bawić w tablice rutingu, ale na razie zrobiłem statycznie dla prostoty
-        if packet.next_hop_address < 3:
-            assert(packet.next_hop_address != 3)
-            packet.next_hop_address = self.address + 1
-        else:
-            packet.next_hop_address = "exit"
+        packet.next_hop_address = self.address + 1
         print(f"Debug: packet's next hop is {packet.next_hop_address}")
 
         # jeżeli obsługujemy pakiet w tym miejscu, to znaczy że przechodzi on przez sieć;

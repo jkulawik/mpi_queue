@@ -13,16 +13,16 @@ avg_input_rate = 0.125
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
 # Zakładamy routing typu wejście->1->2->...->N->wyjście
 queues = []
-NUMBER_OF_QUEUES = 3
-for i in range(NUMBER_OF_QUEUES):
-    queues.append(PacketQueue(i+1, keep_packet_len, event_list))
-    # print(queues[i])  # debug adresów
+LAST_HOP = 3  # ta liczba definiuje też liczbę kolejek w systemie
+for i in range(LAST_HOP):
+    queues.append(PacketQueue(i, keep_packet_len, event_list))
+    print(queues[i])  # debug adresów
 
 
 # Generacja pierwszego eventu
 start_arrival_time = exp(avg_input_rate)
 start_packet = Packet(arrival_time=start_arrival_time, destination_address="exit")  # domyślnie pójdzie do q1
-event_list.append(Event(EventType.PACKET_ARRIVAL, start_packet, start_arrival_time, event_address=1))
+event_list.append(Event(EventType.PACKET_ARRIVAL, start_packet, start_arrival_time, event_address=0))
 
 loop_count = 0
 while time < total_sim_time:
@@ -41,15 +41,15 @@ while time < total_sim_time:
         next_hop = event.packet.next_hop_address
 
         # "Routing"
-        if next_hop == "exit":  # To mógłby być nowy typ eventu ale chyba tu będzie wygodniej
+        if next_hop == LAST_HOP:  # To mógłby być nowy typ eventu ale chyba tu będzie wygodniej
             print(f"Packet left network at time {time}")
 
-            # Generacja nowego pakietu na wyjściu
-            arrival_time = exp(avg_input_rate) + time
-            new_packet = Packet(arrival_time, destination_address="exit")  # domyślnie pójdzie do q1
-            event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=1))
+            # # Generacja nowego pakietu na wejściu
+            # arrival_time = exp(avg_input_rate) + time
+            # new_packet = Packet(arrival_time, destination_address="exit")  # domyślnie pójdzie do q1
+            # event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=1))
         else:
-            current_q = queues[event.packet.next_hop_address-1]
+            current_q = queues[event.packet.next_hop_address]
             current_q.buffer_packet(event.packet)  # To generuje nowy event typu Packet Serviced
 
     # W którejś kolejce ma zostać obsłużony pakiet:
