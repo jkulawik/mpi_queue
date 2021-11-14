@@ -44,10 +44,10 @@ while time < total_sim_time:
         if next_hop == LAST_HOP:  # To mógłby być nowy typ eventu ale chyba tu będzie wygodniej
             print(f"Packet left network at time {time}")
 
-            # # Generacja nowego pakietu na wejściu
-            # arrival_time = exp(avg_input_rate) + time
-            # new_packet = Packet(arrival_time, destination_address="exit")  # domyślnie pójdzie do q1
-            # event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=1))
+            # Generacja nowego pakietu na wejściu
+            arrival_time = exp(avg_input_rate) + time
+            new_packet = Packet(arrival_time, destination_address="exit")  # domyślnie pójdzie do q1
+            event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=1))
         else:
             current_q = queues[event.packet.next_hop_address]
             current_q.buffer_packet(event.packet)  # To generuje nowy event typu Packet Serviced
