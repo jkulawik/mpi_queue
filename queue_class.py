@@ -4,7 +4,6 @@ from small_classes import Packet
 
 
 class PacketQueue:
-
     queue = []
 
     def __init__(self, address, keep_packet_len: bool, event_list_ref):
@@ -15,17 +14,16 @@ class PacketQueue:
     def buffer_packet(self, packet: Packet):
         self.queue.append(packet)
 
-        # TODO ustawić czas zdarzenia na czas zakończenia obsługi pakietu
-        event = Event(EventType.PACKET_SERVICED, packet)
+        if not self.keep_packet_len:
+            packet.randomize_service_time()
+
+        event = Event(EventType.PACKET_SERVICED, packet, packet.service_end_time)
         self.event_list_ref.append(event)
 
     def service_next_packet(self):
-        if len(self.queue) == 0:
+        if len(self.queue) == 0:  # FIXME to chyba teoretycznie nie powinno móc zajść?
             return
         packet: Packet = self.queue[0]
-
-        if not self.keep_packet_len:
-            packet.randomize_service_time()
 
         # "Routing"
         # Można się bawić w tablice rutingu, ale na razie zrobiłem statycznie dla prostoty
@@ -34,8 +32,12 @@ class PacketQueue:
         else:
             packet.next_hop_address = "exit"
 
+        # jeżeli obsługujemy pakiet w tym miejscu, to znaczy że przechodzi on przez sieć;
+        # tym samym jego czas przyjścia do następnego rutera chyba nie powinien być losowy z rozkład wykładniczym?
+        # TODO trzeba ustawić packet.arrival_time - może time+stały czas propagacji?
+
         # "Wysłanie" pakietu dalej:
-        event = Event(EventType.PACKET_ARRIVAL, packet)
+        event = Event(EventType.PACKET_ARRIVAL, packet, packet.arrival_time)
         self.event_list_ref.append(event)
         # Pakiet obsłużony, wywalamy go z bufora:
         self.queue.pop(0)
