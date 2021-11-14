@@ -4,23 +4,23 @@ from misc import exp
 
 class EventType(enum.Enum):
     PACKET_ARRIVAL = 0  # Oznacza przyjście pakietu do bufora jakiejś kolejki
-    PACKET_SERVICED = 1  # Oznacza zakończenie przetwarzania pakietu i przesłanie go dalej
+    PACKET_SERVICE = 1  # Oznacza zakończenie przetwarzania i rozpoczęcie wysyłania pakietu
 
 
 class Packet:
-    service_time = None  # Możemy uznać że długość obsługi oznacza wielkość pakietu
-    service_end_time = None
-    next_hop_address = 2  # dla ułatwienia od razu przypiszmy ruter brzegowy
     avg_service_time = 0.125  # to można przechować gdziekolwiek ale tu jest wygodnie
 
     def __init__(self, arrival_time: float, destination_address: str):
+        self.service_time = None
+        self.service_end_time = None
         self.arrival_time = arrival_time
         self.randomize_service_time()
         self.destination_address = destination_address
+        self.next_hop_address = 1  # dla ułatwienia od razu przypiszmy poprawny dla nowych pakietów
 
     # Oddzielone jako funkcja żeby wykorzystać w ruterach
     def randomize_service_time(self):
-        self.service_time = exp(self.avg_service_time)
+        self.service_time = exp(self.avg_service_time) # Możemy uznać że długość obsługi oznacza wielkość pakietu
         self.service_end_time = self.arrival_time + self.service_time
 
 
@@ -36,7 +36,6 @@ class Event:
         ret += f"\tTime: {self.time}\n"
         if self.event_type == EventType.PACKET_ARRIVAL:
             ret += f"\tPacket arrived in router {self.event_address}"
-        elif self.event_type == EventType.PACKET_SERVICED:
-            ret += f"\tPacket serviced in router {self.event_address}\n"
-            ret += f"\tPacket's next hop: {self.packet.next_hop_address}"
+        elif self.event_type == EventType.PACKET_SERVICE:
+            ret += f"\tPacket service in router {self.event_address}"
         return ret

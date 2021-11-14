@@ -49,16 +49,17 @@ while time < total_sim_time:
             new_packet = Packet(arrival_time, destination_address="exit")  # domyślnie pójdzie do q1
             event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=1))
         else:
-            current_q = queues[next_hop-1]
+            current_q = queues[event.packet.next_hop_address-1]
             current_q.buffer_packet(event.packet)  # To generuje nowy event typu Packet Serviced
 
-    # W którejś kolejce został obsłużony pakiet:
-    elif event.event_type == EventType.PACKET_SERVICED:
+    # W którejś kolejce ma zostać obsłużony pakiet:
+    elif event.event_type == EventType.PACKET_SERVICE:
         current_q = None
         # Znajdujemy kolejkę która powinna obsłużyć pakiet z Eventu:
         for q in queues:
             if event.packet in q.queue:
                 current_q = q
+                print(f"Debug: packet found in queue {current_q.address}")
         current_q.service_next_packet(time)  # to wygeneruje nowy arrival
 
     event_list.pop(0)  # usuwamy event
