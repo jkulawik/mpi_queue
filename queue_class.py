@@ -17,11 +17,11 @@ class PacketQueue:
         if not self.keep_packet_len:
             packet.randomize_service_time()
 
-        event = Event(EventType.PACKET_SERVICED, packet, packet.service_end_time)
+        event = Event(EventType.PACKET_SERVICED, packet, packet.service_end_time, event_address=self.address)
         self.event_list_ref.append(event)
 
-    def service_next_packet(self):
-        if len(self.queue) == 0:  # FIXME to chyba teoretycznie nie powinno móc zajść?
+    def service_next_packet(self, time):
+        if len(self.queue) == 0:  # to chyba teoretycznie nie powinno móc zajść?
             return
         packet: Packet = self.queue[0]
 
@@ -33,11 +33,12 @@ class PacketQueue:
             packet.next_hop_address = "exit"
 
         # jeżeli obsługujemy pakiet w tym miejscu, to znaczy że przechodzi on przez sieć;
-        # tym samym jego czas przyjścia do następnego rutera chyba nie powinien być losowy z rozkład wykładniczym?
-        # TODO trzeba ustawić packet.arrival_time - może time+stały czas propagacji?
+        # tym samym jego czas przyjścia do następnego rutera chyba _nie_ powinien być losowy z rozkład wykładniczym?
+        packet.arrival_time = time + 0.1  # Na razie jest więc stały czas propagacji między ruterami
+        # TODO upewnić się czy czas propagacji między ruterami powinien być stały
 
         # "Wysłanie" pakietu dalej:
-        event = Event(EventType.PACKET_ARRIVAL, packet, packet.arrival_time)
+        event = Event(EventType.PACKET_ARRIVAL, packet, packet.arrival_time, event_address=packet.next_hop_address)
         self.event_list_ref.append(event)
         # Pakiet obsłużony, wywalamy go z bufora:
         self.queue.pop(0)

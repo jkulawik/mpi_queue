@@ -25,10 +25,18 @@ class Packet:
 
 
 class Event:
-    def __init__(self, event_type: EventType, packet: Packet, time: float):
+    def __init__(self, event_type: EventType, packet: Packet, time: float, event_address):
         self.event_type = event_type
         self.packet = packet  # the packet that arrived or was serviced
         self.time = time
+        self.event_address = event_address
 
     def __str__(self):
-        return f'Time: {self.time} Type: {self.event_type}'
+        ret = f"Event:\n"
+        if self.event_type == EventType.PACKET_ARRIVAL:
+            ret += f"\tPacket arrived in router {self.event_address}\n"
+        elif self.event_type == EventType.PACKET_SERVICED:
+            ret += f"\tPacket serviced in router {self.event_address}\n"
+        ret += f"\tTime: {self.time}\n"
+        ret += f"\tPacket's next hop: {self.packet.next_hop_address}"
+        return ret
