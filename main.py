@@ -18,7 +18,7 @@ queues = []
 LAST_HOP = 3  # ta liczba definiuje też liczbę kolejek w systemie
 for i in range(LAST_HOP):
     queues.append(PacketQueue(i, keep_packet_len, event_list))
-    print(queues[i])  # debug adresów
+    #print(queues[i])  # debug adresów
 
 # Statystyki
 input_intervals = []

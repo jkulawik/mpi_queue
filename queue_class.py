@@ -16,7 +16,9 @@ class PacketQueue:
         print(f"Debug: router {self.address} buffering")
         self.queue.append(packet)
 
-        if not self.keep_packet_len:
+        if self.keep_packet_len:
+            packet.service_end_time = packet.arrival_time + packet.service_time
+        else:
             packet.randomize_service_time()
 
         event = Event(EventType.PACKET_SERVICE, packet, packet.service_end_time, event_address=self.address)

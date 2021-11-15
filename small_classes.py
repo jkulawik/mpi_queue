@@ -20,7 +20,7 @@ class Packet:
 
     # Oddzielone jako funkcja żeby wykorzystać w ruterach
     def randomize_service_time(self):
-        self.service_time = exp(self.avg_service_time) # Możemy uznać że długość obsługi oznacza wielkość pakietu
+        self.service_time = exp(self.avg_service_time)  # Możemy uznać że długość obsługi oznacza wielkość pakietu
         self.service_end_time = self.arrival_time + self.service_time
 
 
