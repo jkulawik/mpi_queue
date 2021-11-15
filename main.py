@@ -6,11 +6,17 @@ import matplotlib.pyplot as plot
 import numpy
 
 
+# Parametry symulacji
 keep_packet_len: bool = False
-event_list = []
 total_sim_time = 100.0
+avg_input_rate = 0.125  # λ
+avg_service_time = 0.125  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
+
+# Inicjalizacja
+event_list = []
 time = 0.0
-avg_input_rate = 0.125
+Packet.avg_service_time = avg_service_time
+
 
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
 # Zakładamy routing typu wejście->1->2->...->N->wyjście

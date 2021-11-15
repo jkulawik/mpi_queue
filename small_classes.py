@@ -8,7 +8,7 @@ class EventType(enum.Enum):
 
 
 class Packet:
-    avg_service_time = 0.125  # to można przechować gdziekolwiek ale tu jest wygodnie
+    avg_service_time = 0.125
 
     def __init__(self, arrival_time: float, destination_address: str):
         self.service_time = None
