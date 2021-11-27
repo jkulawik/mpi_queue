@@ -1,78 +1,94 @@
 from queue_class import PacketQueue
 from small_classes import EventType, Event, Packet
-import logging #propozycja, używajmy typowych loggerów z poziomami
+from misc import exp
+# Statystyki
+import matplotlib.pyplot as plot
+import numpy
 
-logging.basicConfig(filename='debug.log', filemode='w', level=logging.DEBUG)
 
+# Parametry symulacji
 keep_packet_len: bool = False
-event_list = []  # TODO dodać silne typowanie na Event?
-total_sim_time = 10.0
-time = 0.0
+total_sim_time = 100.0
+avg_input_rate = 0.125  # λ
+avg_service_time = 0.125  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
 
+# Inicjalizacja
+event_list = []
+time = 0.0
+Packet.avg_service_time = avg_service_time
 
 
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
+# Zakładamy routing typu wejście->1->2->...->N->wyjście
+queues = []
+LAST_HOP = 3  # ta liczba definiuje też liczbę kolejek w systemie
+for i in range(LAST_HOP):
+    queues.append(PacketQueue(i, keep_packet_len, event_list))
+    #print(queues[i])  # debug adresów
 
-#Zmieniam na słownik - będzie imo łatwiej ustawiać kolejki i pozbędziemy się ścian ifów, będzie można łatwo zmienić
-#układ kolejki etc
-# q1 = PacketQueue(1, keep_packet_len, event_list)  # entry node
-# q2 = PacketQueue(2, keep_packet_len, event_list)
-# q3 = PacketQueue(3, keep_packet_len, event_list)  # exit node
+# Statystyki
+input_intervals = []
+output_intervals = []
+previous_exit_time = 0.0
 
-queues = {1:PacketQueue(1, keep_packet_len, event_list), 2: PacketQueue(2, keep_packet_len, event_list),
- 3:PacketQueue(3, keep_packet_len, event_list)}
+# Generacja pierwszego eventu
+start_arrival_time = exp(avg_input_rate)
+input_intervals.append(start_arrival_time)
+start_packet = Packet(arrival_time=start_arrival_time, destination_address="exit")  # domyślnie pójdzie do q1
+event_list.append(Event(EventType.PACKET_ARRIVAL, start_packet, start_arrival_time, event_address=0))
 
-LAST_HOP = len(queues) #NA PRZYSZŁOSC
-
-
-
-
-
-# Załóżmy że zaczynamy symulacje od przyjścia pakietu
-event_list.append(Event(event_type=EventType.PACKET_ARRIVAL, packet=Packet(arrival_time=0.0, destination_address=LAST_HOP)))
-
-
+loop_count = 0
 while time < total_sim_time:
-    # TODO eventy korzystają z czasu dotarcia pakietu, a trzeba go jeszcze odpowiednio ustawić
-
-    event_list.sort(key=lambda x: x.time, reverse=False) #Sortujemy na bazie parametru time eventu
-    logging.debug(f"{time}: Posortowano Liste Eventów, liczba w kolejce: {len(event_list)}")
-    #event = event_list[0]
-    #Zamiast brać pierwsze z wierzchu może lepiej robić pop aby od razu zdjąć z kolejki
-    try:
-        event = event_list.pop()
-    except:
-        logging.error(f"{time}: Brak pakietu do obsłużenia, lista zdarzeń pusta")
-        break
+    event_list.sort(key=lambda x: x.time)  # TODO sortowanie szwankuje, widać kiedy keep_packet_len=true
+    event = event_list[0]
+    assert(event.time > time)
     time = event.time
-    logging.debug(f"{time}: Zdarzenie: {event}")
 
-    #Możemy zamiast ściany IFów zrobić case (python 3.9), albo po prostu potworzyć funkcje dla każdego typu i zrobić refactor na
-    #słownik - może być prostsze w utrzymaniu
-    next_hop = event.packet.next_hop_address
-    logging.debug(f"{time} Aktualny next hop: {next_hop}")
+    loop_count += 1
+    print("Loop:", loop_count)
+    #print("Number of events in list:", len(event_list))
+    print(event)
+
+    # Do którejś kolejki przyszedł pakiet:
     if event.event_type == EventType.PACKET_ARRIVAL:
-
+        next_hop = event.packet.next_hop_address
 
         # "Routing"
-        if next_hop == -1:
-            # TODO trzeba jakoś obsłużyć pakiety wychodzące z sieci
-            pass
+        if next_hop == LAST_HOP:  # To mógłby być nowy typ eventu ale chyba tu będzie wygodniej
+            print(f"Packet left network at time {time}")
+
+            # Generacja nowego pakietu na wejściu
+            interval = exp(avg_input_rate)
+            arrival_time = interval + time
+            new_packet = Packet(arrival_time, destination_address="exit")  # domyślnie pójdzie do q1
+            event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=1))
+
+            # Statystyki
+            input_intervals.append(interval)
+            output_intervals.append(time-previous_exit_time)
+            previous_exit_time = time
         else:
-            #current_q = None
-            # Next hop ma mieszane typy, propozycja: zawsze inty, exit na -1
-            # if next_hop == 1:
-            #     current_q = q1
-            # elif next_hop == 2:
-            #     current_q = q2
-            # elif next_hop == 3:
-            #     current_q = q3
-            #Słownik zamiast ściany ifów, elastyczniej i DRY
-            current_q = queues.get(next_hop, None)
-            current_q.buffer_packet(event.packet)  # to wygeneruje nowy event serviced
+            current_q = queues[event.packet.next_hop_address]
+            current_q.buffer_packet(event.packet)  # To generuje nowy event typu Packet Serviced
 
-    if event.event_type == EventType.PACKET_SERVICED:
-        current_q = queues.get(next_hop, None)
-        current_q.service_next_packet() # to wygeneruje nowy arrival
-    # inne typy eventów...?
+    # W którejś kolejce ma zostać obsłużony pakiet:
+    elif event.event_type == EventType.PACKET_SERVICE:
+        current_q = None
+        # Znajdujemy kolejkę która powinna obsłużyć pakiet z Eventu:
+        for q in queues:
+            if event.packet in q.queue:
+                current_q = q
+                print(f"Debug: packet found in queue {current_q.address}")
+        current_q.service_next_packet(time)  # to wygeneruje nowy arrival
 
+    event_list.pop(0)  # usuwamy event
+
+# Wyniki
+
+x_axis = numpy.linspace(0.0, 0.5)
+
+#plot.style.use('seaborn-deep')
+plot.hist([input_intervals, output_intervals], label=["input", "output"])
+plot.legend(loc='upper right')
+plot.title("Rozkład opóźnień między pakietami na wejściu i wyjściu sieci")
+plot.show()
