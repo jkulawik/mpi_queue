@@ -9,17 +9,18 @@ import numpy
 # GLOBALNE Parametry symulacji - nie musimy zerować przy pętli
 keep_packet_len: bool = False
 total_sim_time = 10000.0
-avg_input_rate = 0.1  # λ
+avg_input_rate = 0.01  # λ
 avg_service_time = 0.125  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
 DIFFERENCE_LIST = []
-
+THEO_LIST = []
+PRACT_LIST = []
 
 # Inicjalizacja
 
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
 # Zakładamy routing typu wejście->1->2->...->N->wyjście
 
-for hopek in range(2,50):
+for hopek in range(3,20):
     #To trzeba było przenieść aby było na każdą iteracje nowe
     print(f'HOPEK NR {hopek}')
     event_list = []
@@ -53,14 +54,25 @@ for hopek in range(2,50):
         assert(event.time > time)
         time = event.time
 
+
+
+
         loop_count += 1
-        #print("Loop:", loop_count)
-        #print("Number of events in list:", len(event_list))
-        #print(event)
+        print("Loop:", loop_count)
+        print("Number of events in list:", len(event_list))
+        print(event)
 
         # Do którejś kolejki przyszedł pakiet:
         if event.event_type == EventType.PACKET_ARRIVAL:
             next_hop = event.packet.next_hop_address
+
+            if next_hop == 1:
+                # Generacja nowego pakietu na wejściu
+                interval = exp(avg_input_rate)
+                arrival_time = interval + time
+                new_packet = Packet(arrival_time, destination_address="exit",
+                                    creation_time=time)  # domyślnie pójdzie do q1
+                event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=1))
 
             # "Routing"
             if next_hop == LAST_HOP:  # To mógłby być nowy typ eventu ale chyba tu będzie wygodniej
@@ -68,11 +80,7 @@ for hopek in range(2,50):
                 avg_thru_time_sum += time-event.packet.creation_time
                 avg_thru_packet_count += 1
 
-                # Generacja nowego pakietu na wejściu
-                interval = exp(avg_input_rate)
-                arrival_time = interval + time
-                new_packet = Packet(arrival_time, destination_address="exit", creation_time=time)  # domyślnie pójdzie do q1
-                event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=1))
+
 
                 # Statystyki
                 input_intervals.append(interval)
@@ -94,29 +102,40 @@ for hopek in range(2,50):
                         PACKET_PER_QUEUE[q.address] += 1
                     except:
                         PACKET_PER_QUEUE[q.address] = 1
-            current_q.service_next_packet(time)  # to wygeneruje nowy arrival
+                    current_q.service_next_packet(time)  # to wygeneruje nowy arrival
 
         event_list.pop(0)  # usuwamy event
 
     # Wyniki
-    print("Obsłużona liczba pakietów:", PACKET_PER_QUEUE[LAST_HOP-1])  # Tu zawsze będzie tyle samo dla każdej dopóki mamy "liniową" sieć
+    serviced_packets = PACKET_PER_QUEUE[LAST_HOP-1]
+    print("Obsłużona liczba pakietów:", serviced_packets)  # Tu zawsze będzie tyle samo dla każdej dopóki mamy "liniową" sieć
 
     #theory_thruput = theoretical_throughput(total_sim_time, avg_service_time, 0.1, LAST_HOP)
 
     # praktyczna = 1 / średni czas przejścia pakietu przez system
-    practical_thruput = avg_thru_packet_count / avg_thru_time_sum
+    #practical_thruput = avg_thru_packet_count / avg_thru_time_sum
+    practical_thruput = PACKET_PER_QUEUE[LAST_HOP-1]/total_sim_time
     # teoretyczna = 1 pakiet / średni czas transmisji
-    theory_thruput = 1 / get_avg_transmission(avg_service_time, 0.1, LAST_HOP)
+    theory_thruput = total_sim_time/(avg_service_time + 0.1)  #1 / get_avg_transmission(avg_service_time, 0.1, LAST_HOP)
 
     print("Przepustowość teoretyczna:", theory_thruput, "pakietów/s")
     print("Przepustowość praktyczna:", practical_thruput, "pakietów/s")
     print("Odchylenie praktycznej przepustowości ", (theory_thruput - practical_thruput)*100/theory_thruput, "%")
     DIFFERENCE_LIST.append((theory_thruput - practical_thruput)*100/theory_thruput)
+    PRACT_LIST.append(practical_thruput)
+    THEO_LIST.append(theory_thruput)
 x_axis = numpy.linspace(0.0, 0.5)
 #plot.style.use('seaborn-deep')
-plot.plot(DIFFERENCE_LIST)
-plot.legend(loc='upper right')
-plot.title("Różnica w względnym odchyleniu praktycznej przepustowości od praktycznej")
+plot.plot(DIFFERENCE_LIST, 'ro')
+plot.title("Różnica w %")
+plot.show()
+
+plot.plot(THEO_LIST, 'b+')
+plot.title("Przepustowość teoretyczna [pakiet/s]")
+plot.show()
+
+plot.plot(PRACT_LIST, 'g+')
+plot.title("Przepustowość zmierzona [pakiet/s]")
 plot.show()
 
 
