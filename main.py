@@ -20,7 +20,7 @@ PRACT_LIST = []
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
 # Zakładamy routing typu wejście->1->2->...->N->wyjście
 
-for hopek in range(3,5):
+for hopek in range(3, 5):
     #To trzeba było przenieść aby było na każdą iteracje nowe
     print(f'HOPEK NR {hopek}')
     event_list = []
@@ -54,18 +54,15 @@ for hopek in range(3,5):
         assert(event.time > time)
         time = event.time
 
-
-
-
         loop_count += 1
         #print("Loop:", loop_count)
-       #print("Number of events in list:", len(event_list))
+        #print("Number of events in list:", len(event_list))
         #print(event)
 
         # Do którejś kolejki przyszedł pakiet:
         if event.event_type == EventType.PACKET_ARRIVAL:
             next_hop = event.packet.next_hop_address
-            print(next_hop)
+            #print(next_hop)
             if next_hop == 0:
                 # Generacja nowego pakietu na wejściu
                 interval = exp(avg_input_rate)
@@ -73,14 +70,12 @@ for hopek in range(3,5):
                 new_packet = Packet(arrival_time, destination_address="exit",
                                     creation_time=time)  # domyślnie pójdzie do q1
                 event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=0))
-                print(f'NEW PACKET WILL ARRIVE {arrival_time}')
+                #print(f'NEW PACKET WILL ARRIVE {arrival_time}')
             # "Routing"
             if next_hop == LAST_HOP:  # To mógłby być nowy typ eventu ale chyba tu będzie wygodniej
                 #print(f"Packet left network at time {time}")
                 avg_thru_time_sum += time-event.packet.creation_time
                 avg_thru_packet_count += 1
-
-
 
                 # Statystyki
                 input_intervals.append(interval)
@@ -92,7 +87,7 @@ for hopek in range(3,5):
 
         # W którejś kolejce ma zostać obsłużony pakiet:
         elif event.event_type == EventType.PACKET_SERVICE:
-            print(event)
+            #print(event)
             current_q = None
             # Znajdujemy kolejkę która powinna obsłużyć pakiet z Eventu:
             for q in queues:
@@ -136,8 +131,6 @@ plot.show()
 plot.plot(PRACT_LIST, 'g+')
 plot.title("Przepustowość zmierzona [pakiet/s]")
 plot.show()
-
-
 
 
 # x_axis = numpy.linspace(0.0, 0.5)
