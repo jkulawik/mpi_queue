@@ -22,7 +22,7 @@ PACKET_PER_QUEUE = {}  # Liczba pakietów przesłana przez daną kolejkę. Liczb
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
 # Zakładamy routing typu wejście->1->2->...->N->wyjście
 queues = []
-LAST_HOP = 100  # ta liczba definiuje też liczbę kolejek w systemie/
+LAST_HOP = 3  # ta liczba definiuje też liczbę kolejek w systemie/
 for i in range(LAST_HOP):
     queues.append(PacketQueue(i, keep_packet_len, event_list))
     #print(queues[i])  # debug adresów
@@ -94,7 +94,7 @@ print("Obsłużona liczba pakietów:", PACKET_PER_QUEUE[0])  # Tu zawsze będzie
 #theory_thruput = theoretical_throughput(total_sim_time, avg_service_time, 0.1, LAST_HOP)
 
 # praktyczna = liczba pakietów / czas symulacji
-practical_thruput = PACKET_PER_QUEUE[0] / total_sim_time
+practical_thruput = PACKET_PER_QUEUE[LAST_HOP-1] / total_sim_time
 # teoretyczna = 1 pakiet / średni czas transmisji
 theory_thruput = 1 / get_avg_transmission(avg_service_time, 0.1, LAST_HOP)
 
