@@ -10,7 +10,7 @@ import numpy
 keep_packet_len: bool = False
 total_sim_time = 10000.0
 avg_input_rate = 0.001  # λ
-avg_service_time = 0.125  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
+avg_service_time = 0.0125  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
 
 # Inicjalizacja
 event_list = []
@@ -100,6 +100,7 @@ theory_thruput = 1 / get_avg_transmission(avg_service_time, 0.1, LAST_HOP)
 
 print("Przepustowość teoretyczna:", theory_thruput, "pakietów/s")
 print("Przepustowość praktyczna:", practical_thruput, "pakietów/s")
+print("Odchylenie praktycznej przepustowości ", (theory_thruput - practical_thruput)*100/theory_thruput, "%")
 
 
 # x_axis = numpy.linspace(0.0, 0.5)
