@@ -1,6 +1,6 @@
 from queue_class import PacketQueue
 from small_classes import EventType, Event, Packet
-from misc import exp
+from misc import exp, theoretical_throughput
 # Statystyki
 import matplotlib.pyplot as plot
 import numpy
@@ -8,20 +8,21 @@ import numpy
 
 # Parametry symulacji
 keep_packet_len: bool = False
-total_sim_time = 100.0
-avg_input_rate = 0.125  # λ
+total_sim_time = 10000.0
+avg_input_rate = 0.001  # λ
 avg_service_time = 0.125  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
 
 # Inicjalizacja
 event_list = []
 time = 0.0
 Packet.avg_service_time = avg_service_time
+PACKET_PER_QUEUE = {} #Liczba pakietów przesłana przez daną kolejkę. Liczba pakietów / total_sim_time -> przepustowość
 
 
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
 # Zakładamy routing typu wejście->1->2->...->N->wyjście
 queues = []
-LAST_HOP = 3  # ta liczba definiuje też liczbę kolejek w systemie
+LAST_HOP = 15  # ta liczba definiuje też liczbę kolejek w systemie/
 for i in range(LAST_HOP):
     queues.append(PacketQueue(i, keep_packet_len, event_list))
     #print(queues[i])  # debug adresów
@@ -79,12 +80,17 @@ while time < total_sim_time:
             if event.packet in q.queue:
                 current_q = q
                 print(f"Debug: packet found in queue {current_q.address}")
+                try:#W celu zliczenia ile obsłużono pakietów dla danych kolejek, zwiększamy counter po każdej iteracji
+                    PACKET_PER_QUEUE[q.address] += 1
+                except:
+                    PACKET_PER_QUEUE[q.address] = 1
         current_q.service_next_packet(time)  # to wygeneruje nowy arrival
 
     event_list.pop(0)  # usuwamy event
 
 # Wyniki
-
+print(PACKET_PER_QUEUE)
+print(theoretical_throughput(total_sim_time, avg_service_time, 0.1, LAST_HOP))
 x_axis = numpy.linspace(0.0, 0.5)
 
 #plot.style.use('seaborn-deep')

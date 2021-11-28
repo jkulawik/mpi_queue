@@ -11,3 +11,7 @@ def exp(mean):
     # Na podstawie wzoru odwrotnej dystrybuanty rozkładu wykładniczego, tzn.
     # F^(-1)(u)=(-1/Lambda)*ln(w), gdzie w - liczba z przedzialu (0,1) (losowa) o rozkladzie jednostajnym:
     return float(-1.0) * float(mean) * math.log(losowa)
+
+def theoretical_throughput(time, avg_service_time, link_time, LAST_HOP):
+    avg_total_transmision_time = (LAST_HOP) * (avg_service_time) + (LAST_HOP-1) * link_time
+    return (time/avg_total_transmision_time)
