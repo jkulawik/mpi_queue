@@ -13,7 +13,7 @@ class PacketQueue:
         self.event_list_ref = event_list_ref
 
     def buffer_packet(self, packet: Packet):
-        print(f"Debug: router {self.address} buffering")
+        #print(f"Debug: router {self.address} buffering")
         self.queue.append(packet)
 
         if self.keep_packet_len:
@@ -25,7 +25,7 @@ class PacketQueue:
         self.event_list_ref.append(event)
 
     def service_next_packet(self, time):
-        print(f"Debug: router {self.address} service start")
+        #print(f"Debug: router {self.address} service start")
 
         if len(self.queue) == 0:  # to chyba teoretycznie nie powinno móc zajść?
             print("WARNING: Trying to service empty queue")
@@ -34,7 +34,7 @@ class PacketQueue:
 
         # "Routing"
         packet.next_hop_address = self.address + 1
-        print(f"Debug: packet's next hop is {packet.next_hop_address}")
+        #print(f"Debug: packet's next hop is {packet.next_hop_address}")
 
         # jeżeli obsługujemy pakiet w tym miejscu, to znaczy że przechodzi on przez sieć;
         # tym samym jego czas przyjścia do następnego rutera chyba _nie_ powinien być losowy z rozkład wykładniczym?
