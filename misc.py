@@ -16,9 +16,3 @@ def exp(mean):
 def get_avg_transmission(avg_service_time, link_time, LAST_HOP):
     return (LAST_HOP) * (avg_service_time) + (LAST_HOP-1) * link_time
     # = liczba kolejek*μ + (liczba łączy * czas transmisji na łączu)
-
-
-def theoretical_throughput(time, avg_service_time, link_time, LAST_HOP):
-    return time/get_avg_transmission(avg_service_time, link_time, LAST_HOP)
-    # = czas symulacji / średni czas przejścia pakietu przez system
-

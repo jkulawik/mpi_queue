@@ -1,6 +1,6 @@
 from queue_class import PacketQueue
 from small_classes import EventType, Event, Packet
-from misc import exp, theoretical_throughput, get_avg_transmission
+from misc import exp, get_avg_transmission
 # Statystyki
 import matplotlib.pyplot as plot
 import numpy
@@ -101,8 +101,6 @@ for hopek in range(2,50):
     # Wyniki
     print("Obsłużona liczba pakietów:", PACKET_PER_QUEUE[LAST_HOP-1])  # Tu zawsze będzie tyle samo dla każdej dopóki mamy "liniową" sieć
 
-    #theory_thruput = theoretical_throughput(total_sim_time, avg_service_time, 0.1, LAST_HOP)
-
     # praktyczna = 1 / średni czas przejścia pakietu przez system
     practical_thruput = avg_thru_packet_count / avg_thru_time_sum
     # teoretyczna = 1 pakiet / średni czas transmisji
@@ -112,6 +110,8 @@ for hopek in range(2,50):
     print("Przepustowość praktyczna:", practical_thruput, "pakietów/s")
     print("Odchylenie praktycznej przepustowości ", (theory_thruput - practical_thruput)*100/theory_thruput, "%")
     DIFFERENCE_LIST.append((theory_thruput - practical_thruput)*100/theory_thruput)
+
+
 x_axis = numpy.linspace(0.0, 0.5)
 #plot.style.use('seaborn-deep')
 plot.plot(DIFFERENCE_LIST)
