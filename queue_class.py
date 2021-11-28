@@ -3,6 +3,7 @@ from misc import exp
 
 
 class PacketQueue:
+    link_transfer_delay = 0.0
 
     def __str__(self):
         return f"Queue with address {self.address}"
@@ -43,7 +44,7 @@ class PacketQueue:
 
         # jeżeli obsługujemy pakiet w tym miejscu, to znaczy że przechodzi on przez sieć;
         # tym samym jego czas przyjścia do następnego rutera chyba _nie_ powinien być losowy z rozkład wykładniczym?
-        packet.arrival_time = time + 0.1  # Na razie jest więc stały czas propagacji między ruterami
+        packet.arrival_time = time + self.link_transfer_delay  # Na razie jest więc stały czas propagacji między ruterami
         # TODO upewnić się czy czas propagacji między ruterami powinien być stały
 
         # "Wysłanie" pakietu dalej:

@@ -8,7 +8,7 @@ import numpy
 
 # GLOBALNE Parametry symulacji - nie musimy zerować przy pętli
 keep_packet_len: bool = False
-total_sim_time = 100.0
+total_sim_time = 300.0
 avg_input_rate = 0.1  # λ
 avg_service_time = 0.2  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
 DIFFERENCE_LIST = []
@@ -20,7 +20,7 @@ PRACT_LIST = []
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
 # Zakładamy routing typu wejście->1->2->...->N->wyjście
 
-for hopek in range(3, 5):
+for hopek in range(3, 30):
     #To trzeba było przenieść aby było na każdą iteracje nowe
     print(f'HOPEK NR {hopek}')
     event_list = []
@@ -51,7 +51,7 @@ for hopek in range(3, 5):
     while time < total_sim_time:
         event_list.sort(key=lambda x: x.time)  # TODO sortowanie szwankuje, widać kiedy keep_packet_len=true
         event = event_list[0]
-        assert(event.time > time)
+        assert(event.time >= time)
         time = event.time
 
         loop_count += 1
@@ -105,15 +105,16 @@ for hopek in range(3, 5):
     # Wyniki
     serviced_packets = PACKET_PER_QUEUE[LAST_HOP-1]
     print("Obsłużona liczba pakietów:", PACKET_PER_QUEUE)  # Tu zawsze będzie tyle samo dla każdej dopóki mamy "liniową" sieć
+    link_delay = PacketQueue.link_transfer_delay
 
     # praktyczna = 1 / średni czas przejścia pakietu przez system
     #practical_thruput = avg_thru_packet_count / avg_thru_time_sum
     # teoretyczna = 1 pakiet / średni czas transmisji
-    # theory_thruput = 1 / get_avg_transmission(avg_service_time, 0.1, LAST_HOP)
+    # theory_thruput = 1 / get_avg_transmission(avg_service_time, link_delay, LAST_HOP)
 
     practical_thruput = PACKET_PER_QUEUE[LAST_HOP-1]/total_sim_time
-    #theory_thruput = total_sim_time/(avg_service_time + 0.1)
-    theory_thruput = 1 / (avg_service_time + 0.1)
+    #theory_thruput = total_sim_time/(avg_service_time + link_delay)
+    theory_thruput = 1 / (avg_service_time + link_delay)
 
 
     print(avg_thru_time_sum)
