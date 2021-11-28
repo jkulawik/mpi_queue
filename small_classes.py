@@ -11,18 +11,15 @@ class Packet:
     avg_service_time = 0.125
 
     def __init__(self, arrival_time: float, destination_address: str, creation_time: float):
-        self.service_time = None
-        self.service_end_time = None
         self.arrival_time = arrival_time
-        self.randomize_service_time()
-        self.destination_address = destination_address  # TODO w obecnym modelu routingu ten parametr nie jest używany, do wywalenia
-        self.next_hop_address = 0  # dla ułatwienia od razu przypiszmy poprawny dla nowych pakietów
         self.creation_time = creation_time
 
-    # Oddzielone jako funkcja żeby wykorzystać w ruterach
-    def randomize_service_time(self):
+        # Losowanie czasu obsługi
         self.service_time = exp(self.avg_service_time)  # Możemy uznać że długość obsługi oznacza wielkość pakietu
         self.service_end_time = self.arrival_time + self.service_time
+        # Routing
+        self.destination_address = destination_address  # TODO w obecnym modelu routingu ten parametr nie jest używany, do wywalenia
+        self.next_hop_address = 0  # dla ułatwienia od razu przypiszmy poprawny dla nowych pakietów
 
 
 class Event:

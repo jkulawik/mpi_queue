@@ -1,4 +1,5 @@
 from small_classes import Event, EventType, Packet
+from misc import exp
 
 
 class PacketQueue:
@@ -12,17 +13,21 @@ class PacketQueue:
         self.keep_packet_len = keep_packet_len
         self.event_list_ref = event_list_ref
 
+    def generate_packet_service_event(self, packet: Packet, time):
+        if not self.keep_packet_len:
+            packet.service_time = exp(packet.avg_service_time)
+        packet.service_end_time = time + packet.service_time
+
+        event = Event(EventType.PACKET_SERVICE, packet, packet.service_end_time, event_address=self.address)
+        self.event_list_ref.append(event)
+
     def buffer_packet(self, packet: Packet):
         #print(f"Debug: router {self.address} buffering")
         self.queue.append(packet)
 
-        if self.keep_packet_len:
-            packet.service_end_time = packet.arrival_time + packet.service_time
-        else:
-            packet.randomize_service_time()
-
-        event = Event(EventType.PACKET_SERVICE, packet, packet.service_end_time, event_address=self.address)
-        self.event_list_ref.append(event)
+        # Jeżeli kolejka była wcześniej pusta, nie zostanie wygenerowany event obsługi więc trzeba to zrobić tutaj:
+        if len(self.queue) == 1:
+            self.generate_packet_service_event(packet, packet.arrival_time)
 
     def service_next_packet(self, time):
         #print(f"Debug: router {self.address} service start")
@@ -46,3 +51,7 @@ class PacketQueue:
         self.event_list_ref.append(event)
         # Pakiet obsłużony, wywalamy go z bufora:
         self.queue.pop(0)
+
+        # Generujemy czas obsługi dla następnego pakietu
+        if len(self.queue) > 0:
+            self.generate_packet_service_event(self.queue[0], time)
