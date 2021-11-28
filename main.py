@@ -8,9 +8,9 @@ import numpy
 
 # GLOBALNE Parametry symulacji - nie musimy zerować przy pętli
 keep_packet_len: bool = False
-total_sim_time = 10000.0
-avg_input_rate = 0.01  # λ
-avg_service_time = 0.125  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
+total_sim_time = 100.0
+avg_input_rate = 0.1  # λ
+avg_service_time = 0.2  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
 DIFFERENCE_LIST = []
 THEO_LIST = []
 PRACT_LIST = []
@@ -20,7 +20,7 @@ PRACT_LIST = []
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
 # Zakładamy routing typu wejście->1->2->...->N->wyjście
 
-for hopek in range(3,20):
+for hopek in range(3,5):
     #To trzeba było przenieść aby było na każdą iteracje nowe
     print(f'HOPEK NR {hopek}')
     event_list = []
@@ -58,22 +58,22 @@ for hopek in range(3,20):
 
 
         loop_count += 1
-        print("Loop:", loop_count)
-        print("Number of events in list:", len(event_list))
-        print(event)
+        #print("Loop:", loop_count)
+       #print("Number of events in list:", len(event_list))
+        #print(event)
 
         # Do którejś kolejki przyszedł pakiet:
         if event.event_type == EventType.PACKET_ARRIVAL:
             next_hop = event.packet.next_hop_address
-
-            if next_hop == 1:
+            print(next_hop)
+            if next_hop == 0:
                 # Generacja nowego pakietu na wejściu
                 interval = exp(avg_input_rate)
                 arrival_time = interval + time
                 new_packet = Packet(arrival_time, destination_address="exit",
                                     creation_time=time)  # domyślnie pójdzie do q1
-                event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=1))
-
+                event_list.append(Event(EventType.PACKET_ARRIVAL, new_packet, arrival_time, event_address=0))
+                print(f'NEW PACKET WILL ARRIVE {arrival_time}')
             # "Routing"
             if next_hop == LAST_HOP:  # To mógłby być nowy typ eventu ale chyba tu będzie wygodniej
                 #print(f"Packet left network at time {time}")
@@ -92,6 +92,7 @@ for hopek in range(3,20):
 
         # W którejś kolejce ma zostać obsłużony pakiet:
         elif event.event_type == EventType.PACKET_SERVICE:
+            print(event)
             current_q = None
             # Znajdujemy kolejkę która powinna obsłużyć pakiet z Eventu:
             for q in queues:
@@ -108,7 +109,7 @@ for hopek in range(3,20):
 
     # Wyniki
     serviced_packets = PACKET_PER_QUEUE[LAST_HOP-1]
-    print("Obsłużona liczba pakietów:", serviced_packets)  # Tu zawsze będzie tyle samo dla każdej dopóki mamy "liniową" sieć
+    print("Obsłużona liczba pakietów:", PACKET_PER_QUEUE)  # Tu zawsze będzie tyle samo dla każdej dopóki mamy "liniową" sieć
 
     #theory_thruput = theoretical_throughput(total_sim_time, avg_service_time, 0.1, LAST_HOP)
 
@@ -117,7 +118,7 @@ for hopek in range(3,20):
     practical_thruput = PACKET_PER_QUEUE[LAST_HOP-1]/total_sim_time
     # teoretyczna = 1 pakiet / średni czas transmisji
     theory_thruput = total_sim_time/(avg_service_time + 0.1)  #1 / get_avg_transmission(avg_service_time, 0.1, LAST_HOP)
-
+    print(avg_thru_time_sum)
     print("Przepustowość teoretyczna:", theory_thruput, "pakietów/s")
     print("Przepustowość praktyczna:", practical_thruput, "pakietów/s")
     print("Odchylenie praktycznej przepustowości ", (theory_thruput - practical_thruput)*100/theory_thruput, "%")
