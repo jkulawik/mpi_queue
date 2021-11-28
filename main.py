@@ -108,9 +108,14 @@ for hopek in range(3, 5):
 
     # praktyczna = 1 / średni czas przejścia pakietu przez system
     #practical_thruput = avg_thru_packet_count / avg_thru_time_sum
-    practical_thruput = PACKET_PER_QUEUE[LAST_HOP-1]/total_sim_time
     # teoretyczna = 1 pakiet / średni czas transmisji
-    theory_thruput = total_sim_time/(avg_service_time + 0.1)  #1 / get_avg_transmission(avg_service_time, 0.1, LAST_HOP)
+    # theory_thruput = 1 / get_avg_transmission(avg_service_time, 0.1, LAST_HOP)
+
+    practical_thruput = PACKET_PER_QUEUE[LAST_HOP-1]/total_sim_time
+    #theory_thruput = total_sim_time/(avg_service_time + 0.1)
+    theory_thruput = 1 / (avg_service_time + 0.1)
+
+
     print(avg_thru_time_sum)
     print("Przepustowość teoretyczna:", theory_thruput, "pakietów/s")
     print("Przepustowość praktyczna:", practical_thruput, "pakietów/s")
