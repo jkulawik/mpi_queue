@@ -103,45 +103,45 @@ for sim_repetition in range(REPETITIONS):
 
     # Wyniki
     serviced_packets = PACKET_PER_QUEUE[LAST_HOP-1]
-    print("Obsłużona liczba pakietów:", PACKET_PER_QUEUE)  # Tu zawsze będzie tyle samo dla każdej dopóki mamy "liniową" sieć
-    link_delay = PacketQueue.link_transfer_delay
+    print("Obsłużona liczba pakietów:", PACKET_PER_QUEUE)
+    #link_delay = PacketQueue.link_transfer_delay  # TODO nieuwzględnione w obliczeniach
 
-    # praktyczna = 1 / średni czas przejścia pakietu przez system
-    #practical_thruput = avg_thru_packet_count / avg_thru_time_sum
-    # teoretyczna = 1 pakiet / średni czas transmisji
-    # theory_thruput = 1 / get_avg_transmission(avg_service_time, link_delay, LAST_HOP)
+    l = 1/avg_input_rate
+    u = avg_service_time
+    r = l/u  # rho
 
-    # practical_thruput = PACKET_PER_QUEUE[LAST_HOP-1]/total_sim_time
-    #theory_thruput = total_sim_time/(avg_service_time + link_delay)
-    theory_thruput = 1 / (avg_service_time + link_delay)
-
-    # print(avg_thru_time_sum)
-    # print("Przepustowość teoretyczna:", theory_thruput, "pakietów/s")
-    # print("Przepustowość praktyczna:", practical_thruput, "pakietów/s")
-    # print("Odchylenie praktycznej przepustowości ", (theory_thruput - practical_thruput)*100/theory_thruput, "%")
     for q in range(len(PACKET_PER_QUEUE)):
         thru = PACKET_PER_QUEUE[q] / total_sim_time
         PRACT_LIST.append(thru)
-        theo = theory_thruput
+
+        if q != 0:
+            l = 1/THEO_LIST[q-1]
+        print(l)
+        theo = r/u + 1/(u-l) + pow(r, 2)/(l-u)  # to już jest wartość oczekiwana
+        # więc dla kolejnych kolejek lambda wynosi odwrotność tej wartości (tylko nw czy to poprawne wg. teorii)
+
         THEO_LIST.append(theo)
+
         DIFFERENCE_LIST.append((theo - thru) * 100 / theo)
 
 #
 
-
+print(THEO_LIST)
 #plot.style.use('seaborn-deep')
 
-plot.plot(DIFFERENCE_LIST, 'ro')
-plot.title("Różnica w %")
-plot.xlabel("Numer kolejki w łańcuchu")
-plot.show()
+# plot.plot(DIFFERENCE_LIST, 'ro')
+# plot.title("Różnica w %")
+# plot.xlabel("Numer kolejki w łańcuchu")
+# plot.show()
 
 plot.plot(THEO_LIST, 'b+')
 plot.title("Przepustowość teoretyczna [pakiet/s]")
+plot.xlabel("Numer kolejki w łańcuchu")
 plot.show()
 
 plot.plot(PRACT_LIST, 'g+')
 plot.title("Przepustowość zmierzona [pakiet/s]")
+plot.xlabel("Numer kolejki w łańcuchu")
 plot.show()
 
 
