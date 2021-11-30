@@ -1,16 +1,16 @@
 from queue_class import PacketQueue
 from small_classes import EventType, Event, Packet
-from misc import exp, get_avg_transmission
+from misc import exp
 # Statystyki
 import matplotlib.pyplot as plot
-import numpy
 
 
 # GLOBALNE Parametry symulacji - nie musimy zerować przy pętli
 keep_packet_len: bool = False
-total_sim_time = 300.0
+total_sim_time = 500.0
 avg_input_rate = 0.1  # λ
 avg_service_time = 0.2  # μ (w tego typu symulacji długość obsługi i wielkość pakietu są równoważne)
+REPETITIONS = 1
 DIFFERENCE_LIST = []
 THEO_LIST = []
 PRACT_LIST = []
@@ -20,16 +20,15 @@ PRACT_LIST = []
 # Routing: pakiety mają adresy docelowe a kolejki "wiedzą" o wszystkich innych kolejkach
 # Zakładamy routing typu wejście->1->2->...->N->wyjście
 
-for hopek in range(3, 30):
+for sim_repetition in range(REPETITIONS):
     #To trzeba było przenieść aby było na każdą iteracje nowe
-    print(f'HOPEK NR {hopek}')
     event_list = []
     time = 0.0
     Packet.avg_service_time = avg_service_time
     PACKET_PER_QUEUE = {}  # Liczba pakietów przesłana przez daną kolejkę. Liczba pakietów / total_sim_time -> przepustowość
 
     queues = []
-    LAST_HOP = hopek  # ta liczba definiuje też liczbę kolejek w systemie/
+    LAST_HOP = 30  # ta liczba definiuje też liczbę kolejek w systemie/
     for i in range(LAST_HOP):
         queues.append(PacketQueue(i, keep_packet_len, event_list))
         #print(queues[i])  # debug adresów
@@ -49,7 +48,7 @@ for hopek in range(3, 30):
 
     loop_count = 0
     while time < total_sim_time:
-        event_list.sort(key=lambda x: x.time)  # TODO sortowanie szwankuje, widać kiedy keep_packet_len=true
+        event_list.sort(key=lambda x: x.time)
         event = event_list[0]
         assert(event.time >= time)
         time = event.time
@@ -112,22 +111,29 @@ for hopek in range(3, 30):
     # teoretyczna = 1 pakiet / średni czas transmisji
     # theory_thruput = 1 / get_avg_transmission(avg_service_time, link_delay, LAST_HOP)
 
-    practical_thruput = PACKET_PER_QUEUE[LAST_HOP-1]/total_sim_time
+    # practical_thruput = PACKET_PER_QUEUE[LAST_HOP-1]/total_sim_time
     #theory_thruput = total_sim_time/(avg_service_time + link_delay)
     theory_thruput = 1 / (avg_service_time + link_delay)
 
+    # print(avg_thru_time_sum)
+    # print("Przepustowość teoretyczna:", theory_thruput, "pakietów/s")
+    # print("Przepustowość praktyczna:", practical_thruput, "pakietów/s")
+    # print("Odchylenie praktycznej przepustowości ", (theory_thruput - practical_thruput)*100/theory_thruput, "%")
+    for q in range(len(PACKET_PER_QUEUE)):
+        thru = PACKET_PER_QUEUE[q] / total_sim_time
+        PRACT_LIST.append(thru)
+        theo = theory_thruput
+        THEO_LIST.append(theo)
+        DIFFERENCE_LIST.append((theo - thru) * 100 / theo)
 
-    print(avg_thru_time_sum)
-    print("Przepustowość teoretyczna:", theory_thruput, "pakietów/s")
-    print("Przepustowość praktyczna:", practical_thruput, "pakietów/s")
-    print("Odchylenie praktycznej przepustowości ", (theory_thruput - practical_thruput)*100/theory_thruput, "%")
-    DIFFERENCE_LIST.append((theory_thruput - practical_thruput)*100/theory_thruput)
-    PRACT_LIST.append(practical_thruput)
-    THEO_LIST.append(theory_thruput)
-x_axis = numpy.linspace(0.0, 0.5)
+#
+
+
 #plot.style.use('seaborn-deep')
+
 plot.plot(DIFFERENCE_LIST, 'ro')
 plot.title("Różnica w %")
+plot.xlabel("Numer kolejki w łańcuchu")
 plot.show()
 
 plot.plot(THEO_LIST, 'b+')
